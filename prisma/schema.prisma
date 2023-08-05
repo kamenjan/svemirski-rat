@@ -1,0 +1,86 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// MODELS
+model Player {
+  id            Int            @id @default(autoincrement())
+  name          String?
+  units         Unit[]
+  notificaitons Notification[]
+}
+
+model Notification {
+  id       Int     @id @default(autoincrement())
+  message  String
+  seen     Boolean
+  Player   Player? @relation(fields: [playerId], references: [id])
+  playerId Int?
+}
+
+model Coordinates {
+  id          Int           @id @default(autoincrement())
+  x           Int
+  y           Int
+  MoveOrder   MoveOrder[]
+  Unit        Unit[]
+  Planet      Planet[]
+  Star        Star[]
+  StarCluster StarCluster[]
+}
+
+model MoveOrder {
+  id            Int         @id @default(autoincrement())
+  destination   Coordinates @relation(fields: [coordinatesId], references: [id])
+  coordinatesId Int
+  startTime     DateTime
+  arrivalTime   DateTime
+  Unit          Unit[]
+}
+
+model Unit {
+  id            Int          @id @default(autoincrement())
+  range         Int
+  speed         Int
+  position      Coordinates? @relation(fields: [coordinatesId], references: [id])
+  coordinatesId Int?
+  moveOrders    MoveOrder?   @relation(fields: [moveOrderId], references: [id])
+  moveOrderId   Int?
+  Player        Player?      @relation(fields: [playerId], references: [id])
+  playerId      Int?
+}
+
+model Planet {
+  id            Int         @id @default(autoincrement())
+  name          String
+  position      Coordinates @relation(fields: [coordinatesId], references: [id])
+  coordinatesId Int
+  star          Star        @relation(fields: [starId], references: [id])
+  starId        Int
+}
+
+model Star {
+  id            Int         @id @default(autoincrement())
+  name          String
+  position      Coordinates @relation(fields: [coordinatesId], references: [id])
+  coordinatesId Int
+  planets        Planet[]
+  cluster       StarCluster @relation(fields: [starClusterId], references: [id])
+  starClusterId Int
+}
+
+model StarCluster {
+  id            Int         @id @default(autoincrement())
+  name          String
+  center        Coordinates @relation(fields: [coordinatesId], references: [id])
+  stars          Star[]
+  coordinatesId Int
+}
